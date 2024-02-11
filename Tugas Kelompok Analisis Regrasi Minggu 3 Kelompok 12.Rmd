@@ -1,0 +1,135 @@
+---
+title: "Tugas Kelompok Analisis Regrasi"
+author: "Nabiil Fauzan (G1401221007), Nafisa Zalfa Maulida (G1401221092), Salsa Rifda Erira (G1401221094)"
+date: "2024-02-11"
+output: html_document
+---
+
+```{r}
+# memanggil packages tidyverse untuk menggunakan beberapa fungsi mengolah data
+library(tidyverse)
+```
+```{r}
+# membaca file csv dan menjadikan baris pertama sebagai nama kolom
+data <- read.csv( "D:/semester 4/Analisis Regrasi/data/Walmart.csv", header = TRUE)
+```
+
+```{r}
+# untuk melihat bentuk dan struktur data sesuai dengan file csv
+view(data)
+str(data)
+```
+```{r}
+# untuk menentukan peubah tak bebas y dan peubah bebas x
+y <- data$Weekly_Sales
+x1 <- data$Temperature
+
+# menentukan banyaknya data
+n <- nrow(data)
+```
+
+```{r}
+# untuk menyajikan nilai y dan x ke dalam tabel
+databaru<-data.frame(cbind(y,x1))
+view(databaru)
+head(databaru)
+```
+
+
+```{r}
+# membuat anova dari nilai peubah y dan x
+model <- lm(y~x1, databaru)
+summary(model)
+```
+
+```{r}
+# untuk menyajikan data peubah x dan peubah y dalam grafik scatterplot bersama garis regresi (merah)
+y.bar <- mean(y)
+plot(x1,y)
+abline(model, col="red")
+text(30, 220, "Y_duga", adj = c(-0.1, 1.5), col = "red", cex = 0.8)
+abline(h=y.bar, col="blue")
+text(31, 185, "Y_bar", adj = c(-0.1, 1.5), col = "blue", cex = 0.8)
+```
+```{r}
+# uji hipotesis Beta0 dan Beta1
+
+# hipotesis Beta0
+# H0 = semua nilai y dapat dijelaskan oleh x
+# H1 = ada nilai y yang tidak dapat dijelaskan dengan nilai x
+
+# Hipotesis Beta1
+# H0 = Tidak ada hubungan linear antara peubah x dan y
+# H1 = ada hubungan linear antara peubah x dan y
+anova.model <- anova(model)
+
+KTG <- anova.model$Mean[2]
+
+galat.baku <- sqrt(KTG)
+
+b0 <- model$coefficients[[1]]
+
+b1 <- model$coefficients[[2]]
+
+se_b0 <- sqrt(KTG*(1/n+mean(x1)^2/sum((x1-mean(x1))^2)))
+
+t_b0 <- b0/se_b0
+
+se_b1 <- sqrt(KTG/sum((x1-mean(x1))^2))
+
+t_b1 <- b1/se_b1
+
+t_tab <- 1.960 #dicari di excel dengan rumus t.inv2t(0.05,6433)
+
+t_b0
+t_b1
+
+t_b0 > t_tab #  hipotesis beta0 akan tolak H0 jika benar
+t_b1 > t_tab # hipotesis Beta1 akan tolak H0 jika benar
+
+# Berdasarkan uji Hipotesis maka disimpulkan bahwa semua nilai y dapat dijelaskan oleh peubah x dan tidak ada hubungan linear antara suhu dan penjualan mingguan walmart
+
+```
+```{r}
+# ukuran keragaman
+galat<-y-(b0+b1*x1)
+
+JKG <- sum((y - (b0+b1*x1))^2)
+JKG
+JKReg <- sum(((b0+b1*x1)- mean(y))^2)
+JKReg
+JKT <- sum((y - mean(y))^2)
+JKT
+JKT2 <- JKReg+JKG
+JKT2
+
+dbReg<-1
+dbg<-n-2
+dbt<-n-1
+
+Fhit<-(JKReg/dbReg)/(JKG/dbg)
+Fhit
+
+P.value<-1-pf(Fhit, dbReg, dbg, lower.tail <- F)
+P.value
+```
+```{r}
+# menentukan selang kepercayaan untuk beta0 dan beta1 
+#Batas Bawah beta0
+bb.b0 <- b0 - abs(qt(0.025, df=n-2))*se_b0
+bb.b0
+#Batas Bawah beta1
+bb.b1 <- b1 - abs(qt(0.025, df=n-2))*se_b1
+bb.b1
+#Batas Atas beta_0
+ba.b0 <- b0 + abs(qt(0.025, df=n-2))*se_b0
+ba.b0
+#Batas Atas beta_1f
+ba.b1 <- b1 + abs(qt(0.025, df=n-2))*se_b1
+ba.b1
+
+# selang kepercayaan untuk nilai beta0 dengan alfa 5% adalah (1118086,1212726)
+# selang kepercayaan untuk nilai beta1 dengan alfa 5% adalah (-2698.733, -1206.106)
+```
+
+
